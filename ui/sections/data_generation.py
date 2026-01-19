@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import pandas as pd
 
 def render_advanced_parameters():
     st.subheader("Advanced Parameters")
@@ -10,21 +11,25 @@ def render_advanced_parameters():
     if "max_tokens" not in st.session_state:
         st.session_state.max_tokens = 100
 
-    st.slider(
-        label="Temperature",
-        min_value=0.0,
-        max_value=1.0,
-        step=0.05,
-        key="temperature"
-    )
+    col1, col2 = st.columns(2)
 
-    st.number_input(
-        label="Max Tokens",
-        min_value=10,
-        max_value=2000,
-        step=10,
-        key="max_tokens"
-    )
+    with col1:
+        st.slider(
+            label="Temperature",
+            min_value=0.0,
+            max_value=1.0,
+            step=0.05,
+            key="temperature"
+        )
+
+    with col2:
+        st.number_input(
+            label="Max Tokens",
+            min_value=10,
+            max_value=2000,
+            step=10,
+            key="max_tokens"
+        )
 
 def render_data_generation():
     # Prompt
@@ -94,7 +99,42 @@ def render_data_generation():
     # Result
     if st.session_state.generated_data:
         st.subheader("Generated Output")
-        st.json(st.session_state.generated_data)
+
+        tab_table, tab_preview, tab_raw = st.tabs(
+            ["📋 Table", "👀 Preview", "🧾 Raw JSON"]
+        )
+
+        data = st.session_state.generated_data
+
+        # ---------- TABLE ----------
+        with tab_table:
+            rows = data.get("data")
+
+            if isinstance(rows, list) and len(rows) > 0:
+                df = pd.DataFrame(rows)
+                st.dataframe(df, use_container_width=True)
+            else:
+                st.info("No tabular data available.")
+
+        # ---------- PREVIEW ----------
+        with tab_preview:
+            st.json(data)
+
+        # ---------- RAW ----------
+        with tab_raw:
+            st.code(
+                json.dumps(data, indent=2),
+                language="json"
+            )
+
+        # ---------- DOWNLOAD ----------
+        st.download_button(
+            label="⬇ Download JSON",
+            data=json.dumps(data, indent=2),
+            file_name="generated_data.json",
+            mime="application/json",
+            use_container_width=True
+        )
 
     return {
         "prompt": prompt,
