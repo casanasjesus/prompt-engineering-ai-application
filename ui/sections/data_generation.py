@@ -1,6 +1,8 @@
 import streamlit as st
 import json
 import pandas as pd
+import io
+import zipfile
 
 def render_advanced_parameters():
     st.subheader("Advanced Parameters")
@@ -127,14 +129,47 @@ def render_data_generation():
                 language="json"
             )
 
+        col1, col2, col3 = st.columns(3)
+        rows = st.session_state.generated_data.get("data")
+
         # ---------- DOWNLOAD ----------
-        st.download_button(
+        with col1:
+            st.download_button(
             label="⬇ Download JSON",
             data=json.dumps(data, indent=2),
             file_name="generated_data.json",
             mime="application/json",
             use_container_width=True
         )
+            
+        # ------------------ EXPORT ------------------
+        with col2:
+            if isinstance(rows, list) and len(rows) > 0:
+                csv_content = export_csv(rows)
+
+            st.download_button(
+                label="⬇ Download CSV",
+                data=csv_content,
+                file_name="generated_data.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
+        
+        # ZIP export (prepared for multi-table)
+        with col3:
+            zip_data = {
+            "generated_data": rows
+        }
+
+            zip_bytes = export_zip(zip_data)
+
+            st.download_button(
+                label="⬇ Download ZIP",
+                data=zip_bytes,
+                file_name="generated_data.zip",
+                mime="application/zip",
+                use_container_width=True,
+            )
 
     return {
         "prompt": prompt,
@@ -156,4 +191,20 @@ def generate_data(prompt, schema, temperature, max_tokens):
             "max_tokens": max_tokens
         }
     }
+
+def export_csv(data: list) -> str:
+    df = pd.DataFrame(data)
+    return df.to_csv(index=False)
+
+def export_zip(data_dict: dict) -> bytes:
+    buffer = io.BytesIO()
+
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for table_name, rows in data_dict.items():
+            df = pd.DataFrame(rows)
+            csv_bytes = df.to_csv(index=False).encode("utf-8")
+            zipf.writestr(f"{table_name}.csv", csv_bytes)
+
+    buffer.seek(0)
+    return buffer.read()
 
