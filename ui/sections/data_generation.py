@@ -194,13 +194,30 @@ def generate_data(prompt, schema, temperature, max_tokens):
         rows_per_table=10,
     )
 
-    raw_response = client.generate_json(llm_prompt)
-    data = parse_llm_response(raw_response)
+    try:
+        raw_response = client.generate_json(llm_prompt)
+        data = parse_llm_response(raw_response)
 
-    return {
-        "status": "success",
-        "data": data,
-    }
+        if "data" not in data:
+            raise ValueError("JSON does not contain 'data' key")
+
+        return {
+            "status": "success",
+            "data": data["data"],
+        }
+
+    except Exception as e:
+        msg = str(e)
+
+        if "quota" in msg.lower() or "resource_exhausted" in msg.lower():
+            raise RuntimeError(
+                "Gemini quota exceeded. Please wait or upgrade your plan."
+            )
+
+        raise RuntimeError(
+            "The AI returned an invalid response.\n"
+            "Try simplifying your prompt or reducing max tokens."
+        )
 
 def export_csv(data: list) -> str:
     df = pd.DataFrame(data)

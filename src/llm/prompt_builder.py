@@ -2,20 +2,30 @@ import json
 
 def build_generation_prompt(schema, user_prompt, rows_per_table=10):
     return f"""
-You are a data generator.
+You are a system that ONLY outputs raw JSON.
 
-Generate synthetic data that strictly follows this database schema:
+If you output anything other than JSON, the response will be rejected.
+
+Database schema:
 {json.dumps(schema, indent=2)}
 
-User instructions:
+User request:
 {user_prompt}
 
-Rules:
-- Output MUST be valid JSON
-- Keys MUST be table names
-- Each table MUST contain exactly {rows_per_table} rows
-- Respect column types and foreign keys
-- Do NOT include explanations
-- Do NOT include markdown
-- Output JSON ONLY
+RULES (MANDATORY):
+- Output MUST start with {{ and end with }}
+- Do NOT add any text before or after JSON
+- Do NOT explain anything
+- Do NOT wrap in markdown
+- JSON must be syntactically valid
+
+OUTPUT FORMAT:
+{{
+  "data": [
+    {{
+      "id": 1,
+      "name": "example"
+    }}
+  ]
+}}
 """
