@@ -4,6 +4,10 @@ import pandas as pd
 import io
 import zipfile
 
+from src.llm.gemini_client import GeminiClient
+from src.llm.prompt_builder import build_generation_prompt
+from src.llm.response_parser import parse_llm_response
+
 def render_advanced_parameters():
     st.subheader("Advanced Parameters")
 
@@ -179,17 +183,23 @@ def render_data_generation():
     }
 
 def generate_data(prompt, schema, temperature, max_tokens):
-    # Simulación temporal
+    client = GeminiClient(
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+
+    llm_prompt = build_generation_prompt(
+        schema=schema,
+        user_prompt=prompt,
+        rows_per_table=10,
+    )
+
+    raw_response = client.generate_json(llm_prompt)
+    data = parse_llm_response(raw_response)
+
     return {
         "status": "success",
-        "data": [
-            {"id": 1, "name": "Example A"},
-            {"id": 2, "name": "Example B"},
-        ],
-        "meta": {
-            "temperature": temperature,
-            "max_tokens": max_tokens
-        }
+        "data": data,
     }
 
 def export_csv(data: list) -> str:

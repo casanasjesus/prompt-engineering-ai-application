@@ -1,5 +1,15 @@
+import sys
+import os
 import streamlit as st
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT_DIR not in sys.path:
+    sys.path.append(ROOT_DIR)
+
 from sections.data_generation import render_data_generation
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Page configuration
 
@@ -48,6 +58,6 @@ if page == "Data Generation":
 
 elif page == "Talk to your data":
     st.header("💬 Talk to your data")
-    
+
 
 
