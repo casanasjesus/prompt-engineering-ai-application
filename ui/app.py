@@ -1,4 +1,5 @@
 import streamlit as st
+from sections.data_generation import render_data_generation
 
 # Page configuration
 
@@ -43,8 +44,10 @@ page = st.sidebar.radio(
 
 if page == "Data Generation":
     st.header("🧪 Data Generation")
-    st.info("Data generation UI coming next...")
+    render_data_generation()
 
 elif page == "Talk to your data":
     st.header("💬 Talk to your data")
-    st.info("NL to SQL UI coming next...")
+    
+
+
