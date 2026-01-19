@@ -1,2 +1,4 @@
 faker
 pytest
+psycopg2-binary
+streamlit
