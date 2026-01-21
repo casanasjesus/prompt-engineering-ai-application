@@ -1,7 +1,6 @@
 import os
 from google import genai
 from google.genai import types
-import json
 
 class GeminiClient:
     def __init__(self, temperature=0.5, max_tokens=1024):
@@ -21,18 +20,26 @@ class GeminiClient:
             config=types.GenerateContentConfig(
                 temperature=self.temperature,
                 max_output_tokens=self.max_tokens,
-                response_mime_type="application/json",
             ),
         )
 
-        # Intentar parsed
+        print("\n" + "=" * 80)
+        print("RAW GEMINI RESPONSE")
+        print("=" * 80)
+
+        if response:
+            print(response)
+        else:
+            print("response is EMPTY")
+
+        print("=" * 80 + "\n")
+
         if response.parsed:
             return response.parsed
 
-        # Fallback a texto
-        text = response.text
+        text = response.candidates[0].content.parts[0].text
 
         try:
-            return json.loads(text)
+            return text
         except Exception:
             raise ValueError(f"Invalid JSON returned by LLM:\n{text}")
