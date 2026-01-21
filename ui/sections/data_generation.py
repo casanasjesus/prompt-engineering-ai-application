@@ -209,6 +209,11 @@ def generate_data(prompt, schema, temperature, max_tokens):
     except Exception as e:
         msg = str(e)
 
+        print("\n" + "=" * 80)
+        print("MESSAGE EXCEPTION")
+        print(msg)
+        print("=" * 80)
+
         if "quota" in msg.lower() or "resource_exhausted" in msg.lower():
             raise RuntimeError(
                 "Gemini quota exceeded. Please wait or upgrade your plan."
