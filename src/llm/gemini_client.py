@@ -3,7 +3,7 @@ from google import genai
 from google.genai import types
 
 class GeminiClient:
-    def __init__(self, temperature=0.5, max_tokens=1024):
+    def __init__(self, temperature=0.5, max_tokens=2000):
         api_key = os.getenv("GEMINI_API_KEY")
 
         if not api_key:

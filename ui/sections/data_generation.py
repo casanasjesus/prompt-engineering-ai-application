@@ -7,6 +7,8 @@ import zipfile
 from src.llm.gemini_client import GeminiClient
 from src.llm.prompt_builder import build_generation_prompt
 from src.llm.response_parser import parse_llm_response
+from src.utils.table_detector import detect_table_name
+from src.db.sqlite_manager import create_table_if_not_exists, insert_rows
 
 def render_advanced_parameters():
     st.subheader("Advanced Parameters")
@@ -56,11 +58,13 @@ def render_data_generation():
     if uploaded_file:
         if uploaded_file.name.endswith(".json"):
             schema = json.load(uploaded_file)
+            st.session_state.schema = schema
             st.success("JSON schema loaded successfully")
 
         elif uploaded_file.name.endswith(".sql"):
             sql_text = uploaded_file.read().decode("utf-8")
             schema = sql_text
+            st.session_state.schema = schema
             st.success("SQL schema loaded successfully")
 
     render_advanced_parameters()
@@ -200,10 +204,17 @@ def generate_data(prompt, schema, temperature, max_tokens):
 
         if "data" not in data:
             raise ValueError("JSON does not contain 'data' key")
+        
+        table_name = detect_table_name(prompt)
+
+        rows = data["data"]
+
+        create_table_if_not_exists(table_name, rows)
+        insert_rows(table_name, rows)
 
         return {
             "status": "success",
-            "data": data["data"],
+            "data": rows
         }
 
     except Exception as e:

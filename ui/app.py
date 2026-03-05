@@ -7,6 +7,7 @@ if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
 from sections.data_generation import render_data_generation
+from sections.chat_page import render_chat_page
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -58,6 +59,7 @@ if page == "Data Generation":
 
 elif page == "Talk to your data":
     st.header("💬 Talk to your data")
+    render_chat_page(st.session_state.schema)
 
 
 
