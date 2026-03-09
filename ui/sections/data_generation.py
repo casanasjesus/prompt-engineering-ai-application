@@ -205,9 +205,9 @@ def generate_data(prompt, schema, temperature, max_tokens):
         if "data" not in data:
             raise ValueError("JSON does not contain 'data' key")
         
-        table_name = detect_table_name(prompt)
-
         rows = data["data"]
+
+        table_name = detect_table_name(prompt, schema)
 
         create_table_if_not_exists(table_name, rows)
         insert_rows(table_name, rows)

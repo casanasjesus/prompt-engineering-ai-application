@@ -1,26 +1,18 @@
 import re
 
-def detect_table_name(prompt: str) -> str:
-    """
-    Detect table name from prompt.
-    Examples:
-    'generate employees data' -> employees
-    'create departments records' -> departments
-    'generate companies' -> companies
-    """
-
+def detect_table_name(prompt: str, schema: dict) -> str:
     prompt = prompt.lower()
 
-    patterns = [
-        r"generate\s+(\w+)",
-        r"create\s+(\w+)",
-        r"make\s+(\w+)",
-        r"build\s+(\w+)"
-    ]
+    if not schema:
+        return "generated_data"
 
-    for pattern in patterns:
-        match = re.search(pattern, prompt)
-        if match:
-            return match.group(1)
+    table_names = list(schema.keys())
 
-    return "generated_data"
+    for table in table_names:
+
+        singular = table[:-1] if table.endswith("s") else table
+
+        if table in prompt or singular in prompt:
+            return table
+
+    return table_names[0]
