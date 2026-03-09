@@ -1,33 +1,37 @@
 class SQLAgent:
 
     def __init__(self, llm_client, schema):
+
         self.llm = llm_client
         self.schema = schema
 
-    def generate_sql(self, question):
+    def generate_sql_stream(self, question):
+
+        schema_text = ""
+
+        for table, info in self.schema.items():
+            cols = list(info["columns"].keys())
+            schema_text += f"{table}({', '.join(cols)})\n"
 
         prompt = f"""
-You are a SQL expert.
+    You are a SQL expert.
 
-Database schema:
-{self.schema}
+    Database schema:
 
-User question:
-{question}
+    {schema_text}
 
-RULES:
-- Return ONLY the SQL query
-- Do NOT explain anything
-- Do NOT use markdown
-- SQL must be valid
+    User question:
+    {question}
 
-Example:
+    Rules:
 
-SELECT * FROM companies;
+    - Only generate SQL
+    - No explanations
+    - No markdown
+    - Use valid SQLite syntax
+    """
 
-SQL:
-"""
+        stream = self.llm.generate_stream(prompt)
 
-        response = self.llm.generate(prompt)
-
-        return response.strip()
+        for chunk in stream:
+            yield chunk

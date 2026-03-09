@@ -1,13 +1,25 @@
-import sqlite3
 import pandas as pd
+from src.db.sqlite_manager import get_connection
 
 class SQLExecutor:
-    def __init__(self, db_path="data/companies.db"):
 
-        self.conn = sqlite3.connect(db_path)
+    def clean_sql(self, sql):
+        sql = sql.strip()
+        sql = sql.replace("```sql", "")
+        sql = sql.replace("```", "")
+        sql = sql.rstrip(";")
+
+        return sql
 
     def run_query(self, sql):
+        sql = self.clean_sql(sql)
 
-        df = pd.read_sql_query(sql, self.conn)
+        try:
+            conn = get_connection()
+            df = pd.read_sql_query(sql, conn)
+            conn.close()
 
-        return df
+            return df
+
+        except Exception as e:
+            raise RuntimeError(f"SQL execution error: {str(e)}")

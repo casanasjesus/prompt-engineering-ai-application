@@ -3,9 +3,9 @@ def detect_prompt_injection(text):
     forbidden = [
         "ignore previous instructions",
         "system prompt",
+        "reveal prompt",
         "drop table",
-        "delete database",
-        "reveal prompt"
+        "delete database"
     ]
 
     text = text.lower()

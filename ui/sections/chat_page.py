@@ -1,62 +1,92 @@
 import streamlit as st
+import pandas as pd
 
 from src.llm.chat_with_data.sql_agent import SQLAgent
 from src.llm.chat_with_data.sql_executor import SQLExecutor
 from src.llm.chat_with_data.visualization import create_bar_plot
 from src.llm.chat_with_data.guardrails import detect_prompt_injection
-from src.llm.gemini_client import GeminiClient
 
-def render_chat_page(schema):
-    st.title("💬 Talk to your Data")
-
+def render_chat():
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
+    # Display chat history
     for msg in st.session_state.messages:
-        st.chat_message(msg["role"]).write(msg["content"])
 
-    user_input = st.chat_input("Ask a question about your data...")
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-    if not user_input:
-        return
+            if "sql" in msg:
+                st.code(msg["sql"], language="sql")
 
-    # guardar mensaje usuario
-    st.session_state.messages.append(
-        {"role": "user", "content": user_input}
-    )
+            if "df" in msg:
+                st.dataframe(msg["df"])
 
-    st.chat_message("user").write(user_input)
+    # Chat input
+    question = st.chat_input("Ask a question about your data...")
 
-    # guardrails
-    if detect_prompt_injection(user_input):
-        st.chat_message("assistant").write(
-            "⚠️ Query blocked due to security policy."
-        )
-        return
+    if question:
 
-    # LLM
-    client = GeminiClient()
+        # Save user message
+        st.session_state.messages.append({
+            "role": "user",
+            "content": question
+        })
 
-    agent = SQLAgent(client, schema)
+        with st.chat_message("user"):
+            st.markdown(question)
 
-    sql_query = agent.generate_sql(user_input)
+        # Guardrail check
+        if detect_prompt_injection(question):
 
-    st.chat_message("assistant").code(sql_query, language="sql")
+            with st.chat_message("assistant"):
+                st.error("⚠️ Prompt injection detected.")
 
-    # ejecutar SQL
-    executor = SQLExecutor()
+            return
 
-    try:
+        with st.chat_message("assistant"):
 
-        df = executor.run_query(sql_query)
+            with st.spinner("Thinking..."):
 
-        st.dataframe(df)
+                agent = SQLAgent(
+                    llm_client=st.session_state.llm,
+                    schema=st.session_state.schema
+                )
 
-        fig = create_bar_plot(df)
+                sql_placeholder = st.empty()
 
-        if fig:
-            st.pyplot(fig)
+                sql_text = ""
 
-    except Exception as e:
+                for chunk in agent.generate_sql_stream(question):
 
-        st.error(f"SQL execution failed: {e}")
+                    sql_text += chunk
+
+                    sql_placeholder.code(sql_text, language="sql")
+
+                sql = sql_text
+
+                executor = SQLExecutor()
+
+                df = None
+
+                try:
+
+                    df = executor.run_query(sql)
+
+                    st.dataframe(df)
+
+                    fig = create_bar_plot(df)
+
+                    if fig:
+                        st.pyplot(fig)
+
+                except Exception as e:
+
+                    st.error(f"Query failed: {str(e)}")
+
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": "Here are the results",
+            "sql": sql,
+            "df": df if df is not None else pd.DataFrame()
+        })

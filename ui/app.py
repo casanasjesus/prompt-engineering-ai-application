@@ -6,11 +6,19 @@ ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
+from src.llm.gemini_client import GeminiClient
 from sections.data_generation import render_data_generation
-from sections.chat_page import render_chat_page
+from sections.chat_page import render_chat
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Initialize session state
+if "llm" not in st.session_state:
+    st.session_state.llm = GeminiClient()
+
+if "schema" not in st.session_state:
+    st.session_state.schema = {}
 
 # Page configuration
 
@@ -59,7 +67,7 @@ if page == "Data Generation":
 
 elif page == "Talk to your data":
     st.header("💬 Talk to your data")
-    render_chat_page(st.session_state.schema)
+    render_chat()
 
 
 
