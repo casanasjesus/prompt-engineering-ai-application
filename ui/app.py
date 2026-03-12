@@ -9,6 +9,7 @@ if ROOT_DIR not in sys.path:
 from src.llm.gemini_client import GeminiClient
 from sections.data_generation import render_data_generation
 from sections.chat_page import render_chat
+from streamlit_option_menu import option_menu
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -54,18 +55,27 @@ if "pipeline_result" not in st.session_state:
 
 st.sidebar.title("Data Assistant")
 
-page = st.sidebar.radio(
-    "Navigation",
-    options=["Data Generation", "Talk to your data"],
-)
+dataGeneration = "Data Generation"
+talkToYourData = "Talk to your data"
+
+with st.sidebar:
+    selected = option_menu(
+        "Navigation",
+        [dataGeneration, talkToYourData],
+        icons=["database", "chat"],
+        menu_icon="cast",
+        default_index=0
+    )
+
+page = selected
 
 # Page routing
 
-if page == "Data Generation":
+if page == dataGeneration:
     st.header("🧪 Data Generation")
     render_data_generation()
 
-elif page == "Talk to your data":
+elif page == talkToYourData:
     st.header("💬 Talk to your data")
     render_chat()
 

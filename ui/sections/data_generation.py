@@ -17,7 +17,7 @@ def render_advanced_parameters():
         st.session_state.temperature = 0.5
 
     if "max_tokens" not in st.session_state:
-        st.session_state.max_tokens = 100
+        st.session_state.max_tokens = 2500
 
     col1, col2 = st.columns(2)
 
@@ -34,7 +34,7 @@ def render_advanced_parameters():
         st.number_input(
             label="Max Tokens",
             min_value=10,
-            max_value=2000,
+            max_value=5000,
             step=10,
             key="max_tokens"
         )
