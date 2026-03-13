@@ -49,15 +49,20 @@ def render_data_generation():
 
     # Upload schema
     uploaded_file = st.file_uploader(
-        label="Upload DDL Schema",
-        type=["sql", "json"]
+        label="Upload Schema",
+        type=["DDL", "json", "sql"]
     )
 
     schema = None
 
     if uploaded_file:
         if uploaded_file.name.endswith(".json"):
-            schema = json.load(uploaded_file)
+            
+            try:
+                schema = json.load(uploaded_file)
+            except json.JSONDecodeError:
+                st.error("Invalid JSON file")
+
             st.session_state.schema = schema
             st.success("JSON schema loaded successfully")
 

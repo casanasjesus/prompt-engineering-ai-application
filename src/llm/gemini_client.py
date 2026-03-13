@@ -12,6 +12,7 @@ class GeminiClient:
         self.client = genai.Client(api_key=api_key)
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.geminiModel = "gemini-2.5-flash"
 
     # --------------------------------------------------
     # MODULE 1 → DATA GENERATION
@@ -19,7 +20,7 @@ class GeminiClient:
 
     def generate_json(self, prompt: str) -> dict:
         response = self.client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=self.geminiModel,
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=self.temperature,
@@ -54,7 +55,7 @@ class GeminiClient:
 
     def generate(self, prompt: str):
         response = self.client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=self.geminiModel,
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=self.temperature,
@@ -70,7 +71,7 @@ class GeminiClient:
 
     def generate_stream(self, prompt: str):
         stream = self.client.models.generate_content_stream(
-            model="gemini-2.5-flash",
+            model=self.geminiModel,
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=self.temperature,
