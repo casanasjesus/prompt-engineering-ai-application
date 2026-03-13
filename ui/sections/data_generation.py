@@ -57,7 +57,7 @@ def render_data_generation():
 
     if uploaded_file:
         if uploaded_file.name.endswith(".json"):
-            
+
             try:
                 schema = json.load(uploaded_file)
             except json.JSONDecodeError:
@@ -84,8 +84,17 @@ def render_data_generation():
     if "is_generating" not in st.session_state:
         st.session_state.is_generating = False
 
+    # Validate inputs
+    prompt_valid = bool(prompt and prompt.strip())
+    file_valid = uploaded_file is not None
+    can_generate = prompt_valid and file_valid
+
     # Generate button
-    if st.button("🚀 Generate Data", type="primary"):
+    if st.button(
+        "🚀 Generate Data",
+        type="primary",
+        disabled=not can_generate
+    ):
         st.session_state.error = None
         st.session_state.generated_data = None
 
