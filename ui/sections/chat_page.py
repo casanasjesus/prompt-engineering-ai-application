@@ -49,8 +49,7 @@ def render_chat():
             with st.spinner("Thinking..."):
 
                 agent = SQLAgent(
-                    llm_client=st.session_state.llm,
-                    schema=st.session_state.schema
+                    llm_client=st.session_state.llm
                 )
 
                 sql_placeholder = st.empty()

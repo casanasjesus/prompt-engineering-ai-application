@@ -1,79 +1,47 @@
-import re
+from pathlib import Path
+from src.db.sqlite_manager import get_connection
 
-def parse_sql_schema(sql):
-
-    tables = {}
-
-    table_matches = re.findall(
-        r'create\s+table\s+(\w+)\s*\((.*?)\);?',
-        sql,
-        re.I | re.S
-    )
-
-    for table_name, cols_block in table_matches:
-
-        columns = {}
-        primary_keys = []
-        foreign_keys = []
-
-        lines = [line.strip() for line in cols_block.split(",")]
-
-        for line in lines:
-
-            parts = line.split()
-
-            if len(parts) < 2:
-                continue
-
-            col_name = parts[0]
-            col_type = parts[1]
-
-            not_null = "NOT NULL" in line.upper()
-            auto_increment = "AUTO_INCREMENT" in line.upper()
-            unique = "UNIQUE" in line.upper()
-
-            is_primary = "PRIMARY KEY" in line.upper()
-
-            if is_primary:
-                primary_keys.append(col_name)
-
-            columns[col_name] = {
-                "type": col_type,
-                "not_null": not_null,
-                "default": None,
-                "primary_key": is_primary,
-                "unique": unique,
-                "auto_increment": auto_increment,
-                "check": None
-            }
-
-        tables[table_name.lower()] = {
-            "columns": columns,
-            "primary_keys": primary_keys,
-            "foreign_keys": foreign_keys
-        }
-
-    return tables
+BASE_DIR = Path(__file__).resolve().parent
+DB_FILE = BASE_DIR / "database" / "data_assistant.db"
 
 class SQLAgent:
 
-    def __init__(self, llm_client, schema):
+    def __init__(self, llm_client, db_path=DB_FILE):
 
         self.llm = llm_client
+        self.db_path = db_path
 
-        # Detect if schema is SQL text
-        if isinstance(schema, str):
-            self.schema = parse_sql_schema(schema)
-        else:
-            self.schema = schema
+    def get_schema_from_db(self):
 
-    def generate_sql_stream(self, question):
+        conn = get_connection()
+        cursor = conn.cursor()
 
         schema_text = ""
 
-        for table, info in self.schema.items():
-            cols = list(info["columns"].keys())
-            schema_text += f"{table}({', '.join(cols)})\n"
+        # Get tables
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table';"
+        )
+
+        tables = cursor.fetchall()
+
+        for (table_name,) in tables:
+
+            cursor.execute(f"PRAGMA table_info({table_name});")
+            columns = cursor.fetchall()
+
+            col_names = [col[1] for col in columns]
+
+            schema_text += f"{table_name}({', '.join(col_names)})\n"
+
+        conn.close()
+
+        return schema_text
+
+
+    def generate_sql_stream(self, question):
+
+        schema_text = self.get_schema_from_db()
 
         prompt = f"""
     You are a SQL expert.
@@ -92,7 +60,7 @@ class SQLAgent:
     - No markdown
     - Use valid SQLite syntax
     """
-
+        
         stream = self.llm.generate_stream(prompt)
 
         for chunk in stream:

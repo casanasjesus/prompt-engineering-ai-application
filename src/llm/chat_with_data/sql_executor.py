@@ -1,4 +1,5 @@
 import pandas as pd
+
 from src.db.sqlite_manager import get_connection
 
 class SQLExecutor:

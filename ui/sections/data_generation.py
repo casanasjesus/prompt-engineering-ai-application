@@ -136,7 +136,7 @@ def render_data_generation():
 
             if isinstance(rows, list) and len(rows) > 0:
                 df = pd.DataFrame(rows)
-                st.dataframe(df, use_container_width=True)
+                st.dataframe(df, width='stretch')
             else:
                 st.info("No tabular data available.")
 
@@ -161,7 +161,7 @@ def render_data_generation():
             data=json.dumps(data, indent=2),
             file_name="generated_data.json",
             mime="application/json",
-            use_container_width=True
+            width='stretch'
         )
             
         # ------------------ EXPORT ------------------
@@ -174,7 +174,7 @@ def render_data_generation():
                 data=csv_content,
                 file_name="generated_data.csv",
                 mime="text/csv",
-                use_container_width=True,
+                width='stretch',
             )
         
         # ZIP export (prepared for multi-table)
@@ -190,7 +190,7 @@ def render_data_generation():
                 data=zip_bytes,
                 file_name="generated_data.zip",
                 mime="application/zip",
-                use_container_width=True,
+                width='stretch',
             )
 
     return {
