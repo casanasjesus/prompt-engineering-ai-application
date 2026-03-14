@@ -5,8 +5,8 @@ import io
 import zipfile
 
 from src.llm.gemini_client import GeminiClient
-from src.llm.prompt_builder import build_generation_prompt
-from src.llm.response_parser import parse_llm_response
+from src.llm.data_generation.prompt_builder import build_generation_prompt
+from src.llm.data_generation.response_parser import parse_llm_response
 from src.utils.table_detector import detect_table_name
 from src.db.sqlite_manager import create_table_if_not_exists, insert_rows
 
@@ -50,7 +50,7 @@ def render_data_generation():
     # Upload schema
     uploaded_file = st.file_uploader(
         label="Upload Schema",
-        type=["DDL", "json", "sql"]
+        type=["ddl", "json", "sql"]
     )
 
     schema = None
@@ -71,6 +71,12 @@ def render_data_generation():
             schema = sql_text
             st.session_state.schema = schema
             st.success("SQL schema loaded successfully")
+
+        elif uploaded_file.name.endswith(".ddl"):
+            ddl_text = uploaded_file.read().decode("utf-8")
+            schema = ddl_text
+            st.session_state.schema = schema
+            st.success("DDL schema loaded successfully")
 
     render_advanced_parameters()
 

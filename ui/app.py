@@ -7,8 +7,8 @@ if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
 from src.llm.gemini_client import GeminiClient
-from sections.data_generation import render_data_generation
-from sections.chat_page import render_chat
+from ui.sections.data_generation.data_generation import render_data_generation
+from ui.sections.chat_with_data.chat_with_data import render_chat
 from streamlit_option_menu import option_menu
 from dotenv import load_dotenv
 
